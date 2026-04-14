@@ -1,5 +1,5 @@
 import streamlit as st
-from auth_service import send_flash_call
+from auth_service import send_auth_sms
 from bitrix_integration import get_active_deals, close_deal
 from exolve_voice import initiate_masked_call
 
@@ -11,20 +11,23 @@ st.title("🚚 Кабинет водителя")
 if "auth" not in st.session_state:
     st.session_state.auth = False
 
+if "verification" not in st.session_state:
+    st.session_state.verification = None
+
 
 if not st.session_state.auth:
     phone = st.text_input("Ваш телефон", placeholder="79990000000")
 
     if st.button("Получить код доступа"):
-        with st.spinner("Звоним..."):
-            code = send_flash_call(phone)
+        with st.spinner("Отправляем SMS..."):
+            code = send_auth_sms(phone)
             if code:
                 st.session_state.verification = code
-                st.success("Ждите звонка-сброса. Введите последние 4 цифры.")
+                st.success("Код отправлен в SMS. Введите его ниже.")
             else:
-                st.error("Ошибка дозвона")
+                st.error("Ошибка отправки SMS")
 
-    user_code = st.text_input("Код из звонка")
+    user_code = st.text_input("Код из SMS")
     if st.button("Войти"):
         if user_code == st.session_state.get("verification"):
             st.session_state.auth = True

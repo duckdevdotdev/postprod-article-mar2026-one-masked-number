@@ -1,28 +1,28 @@
+import random
 import requests
 from config import Config
 
 
-def send_flash_call(target_phone: str):
+def send_auth_sms(target_phone: str):
     """
-    Инициирует сброс-звонок.
-    Возвращает 4 последние цифры номера, с которого пойдет вызов.
+    Генерирует одноразовый код и отправляет его по SMS.
+    Возвращает сам код для дальнейшей проверки в Streamlit.
     """
-    auth_number = Config.AUTH_POOL_NUMBER
+    code = str(random.randint(1000, 9999))
 
-    url = "https://api.exolve.ru/voice/v1/MakeCall"
+    url = "https://api.exolve.ru/messaging/v1/SendSMS"
     headers = {"Authorization": f"Bearer {Config.EXOLVE_API_KEY}"}
 
     payload = {
-        "number": auth_number,
+        "number": Config.SMS_SENDER,
         "destination": target_phone,
-        "record": False,
-        "time_limit": 5,
+        "text": f"Код входа: {code}",
     }
 
     try:
         resp = requests.post(url, headers=headers, json=payload, timeout=5)
         resp.raise_for_status()
-        return auth_number[-4:]
+        return code
     except Exception as e:
-        print(f"Ошибка Flash Call: {e}")
+        print(f"Ошибка отправки SMS: {e}")
         return None
